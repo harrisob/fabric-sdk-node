@@ -374,6 +374,19 @@ class DiscoveryService extends ServiceAction {
 		return this.discoveryResults;
 	}
 
+	/**
+	 * Indicates if this discovery service has retreived results
+	 */
+	hasDiscoveryResults() {
+		const method = `hasDiscoveryResults[${this.name}]`;
+		logger.debug(`${method} - start`);
+
+		if (this.discoveryResults) {
+			return true;
+		}
+
+		return false;
+	}
 
 	/* internal method
 	 *  Takes an array of {@link DiscoveryChaincodeCall} that represent the
@@ -578,17 +591,11 @@ class DiscoveryService extends ServiceAction {
 		const method = `_buildOrderer[${this.name}]`;
 		logger.debug(`${method} - start mspid:${msp_id} endpoint:${host}:${port}`);
 
-		const address = `${host}:${port}`;
-		const found = this.channel.getCommitter(address);
-		if (found) {
-			logger.debug('%s - orderer is already added to the channel - %s', method, address);
-			return found.name;
-		}
-
+		const name = `${host}:${port}`;
 		const url = this._buildUrl(host, port);
 		logger.debug(`${method} - create a new orderer ${url}`);
-		const orderer = this.client.newCommitter(address, msp_id);
-		const end_point = this.client.newEndpoint(this._buildOptions(address, url, host, msp_id));
+		const orderer = this.client.newCommitter(name, msp_id);
+		const end_point = this.client.newEndpoint(this._buildOptions(name, url, host, msp_id));
 		try {
 			// first check to see if orderer is already on this channel
 			let same;
@@ -605,13 +612,13 @@ class DiscoveryService extends ServiceAction {
 				this.channel.addCommitter(orderer);
 			} else {
 				await same.checkConnection();
-				logger.debug('%s - %s - already added to this channel', method, orderer);
+				logger.debug('%s - orderer already added to this channel', method);
 			}
 		} catch (error) {
-			logger.error(`${method} - Unable to connect to the discovered orderer ${address} due to ${error}`);
+			logger.error(`${method} - Unable to connect to the discovered orderer ${name} due to ${error}`);
 		}
 
-		return address;
+		return name;
 	}
 
 	async _buildPeer(discovery_peer) {
@@ -650,6 +657,9 @@ class DiscoveryService extends ServiceAction {
 			} catch (error) {
 				logger.error(`${method} - Unable to connect to the discovered peer ${address} due to ${error}`);
 			}
+		} else {
+			// make sure the existing connect is still good
+			await peer.checkConnection();
 		}
 
 		// make sure that this peer has all the found installed chaincodes
@@ -660,6 +670,7 @@ class DiscoveryService extends ServiceAction {
 			}
 		}
 
+		logger.debug(`${method} - end`);
 		return peer;
 	}
 

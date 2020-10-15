@@ -233,6 +233,7 @@ export class DiscoveryService extends ServiceAction {
 	public send(request?: any): Promise<any>;
 	public getDiscoveryResults(refresh?: boolean): Promise<any>;
 	public close(): void;
+	public hasDiscoveryResults(): boolean;
 }
 export interface RegistrationOpts {
 	startBlock?: number|string|Long;
@@ -290,8 +291,9 @@ export class EventService extends ServiceAction {
 	public registerTransactionListener(txid: string, callback: EventCallback, options: EventRegistrationOptions): EventListener;
 	public registerChaincodeListener(chaincodeId: string, eventName: string, callback: EventCallback, options: EventRegistrationOptions): EventListener;
 	public registerBlockListener(callback: EventCallback, options: EventRegistrationOptions): EventListener;
-	setTargets(targets: Eventer[]): void;
-	isStarted(): boolean;
+	public setTargets(targets: Eventer[]): void;
+	public isStarted(): boolean;
+	public isInUse(): boolean;
 }
 
 export interface StartEventRequest {

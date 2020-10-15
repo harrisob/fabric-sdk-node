@@ -370,6 +370,19 @@ describe('DiscoveryService', () => {
 		});
 	});
 
+	describe('#hasDiscoveryResults', async () => {
+		it('should return false', () => {
+			discovery.discoveryResults = null;
+			const results = discovery.hasDiscoveryResults();
+			results.should.be.false;
+		});
+		it('should return true', () => {
+			discovery.discoveryResults = {};
+			const results = discovery.hasDiscoveryResults();
+			results.should.be.true;
+		});
+	});
+
 	describe('#close', () => {
 		it('should close no targets', () => {
 			discovery.close();
@@ -561,13 +574,6 @@ describe('DiscoveryService', () => {
 	});
 
 	describe('#_buildOrderer', () => {
-		it('should handle found committer on the channel', async () => {
-			committer.name = 'mycommitter:80';
-			channel.getCommitter = sinon.stub().returns(committer);
-			const results = await discovery._buildOrderer('mycommitter', '80', 'mspid');
-			sinon.assert.calledWith(FakeLogger.debug, '%s - orderer is already added to the channel - %s');
-			should.equal(results, 'mycommitter:80');
-		});
 		it('should run', async () => {
 			committer.name = 'mycommitter:80';
 			channel.getCommitter = sinon.stub().returns(committer);
@@ -584,10 +590,9 @@ describe('DiscoveryService', () => {
 		it('should handle found same name committer on the channel', async () => {
 			channel.addCommitter(committer);
 			committer.endpoint = endpoint;
-			discovery._buildUrl = sinon.stub().returns('grpc://somehost.com');
+			discovery._buildUrl = sinon.stub().returns('grpc://somehost.com:7000');
 			await discovery._buildOrderer('somehost.com', 7000, 'mspid');
 			should.equal(channel.getCommitters().length, 1);
-			sinon.assert.calledWith(FakeLogger.debug, '%s - %s - already added to this channel');
 		});
 	});
 
